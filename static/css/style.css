@@ -35,6 +35,117 @@
     --glass-blur: blur(16px);
 }
 
+/* Light Theme Overrides */
+body.light-theme {
+    --bg-dark: #f1f5f9;
+    --bg-card: rgba(255, 255, 255, 0.75);
+    --border-color: rgba(15, 23, 42, 0.08);
+    --border-hover: rgba(15, 23, 42, 0.16);
+    
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    
+    --accent-blue: #2563eb;
+    --accent-blue-glow: rgba(37, 99, 235, 0.1);
+    
+    --color-feature-bg: rgba(6, 182, 212, 0.08);
+    --color-feature-border: rgba(6, 182, 212, 0.3);
+    
+    --color-announcement-bg: rgba(168, 85, 247, 0.08);
+    --color-announcement-border: rgba(168, 85, 247, 0.3);
+    
+    --color-issue-bg: rgba(239, 68, 68, 0.08);
+    --color-issue-border: rgba(239, 68, 68, 0.3);
+    
+    --color-deprecation-bg: rgba(245, 158, 11, 0.08);
+    --color-deprecation-border: rgba(245, 158, 11, 0.3);
+}
+
+body.light-theme .glow-sphere {
+    opacity: 0.04;
+}
+
+body.light-theme .stars-overlay {
+    background-image: radial-gradient(#0f172a 1px, transparent 0);
+    opacity: 0.015;
+}
+
+body.light-theme .brand-text h1 {
+    background: linear-gradient(135deg, #0f172a 40%, #475569 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+body.light-theme .search-box input {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+body.light-theme .search-box input:focus {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+body.light-theme .filter-pill {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+body.light-theme .filter-pill:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+body.light-theme .filter-pill.active {
+    background: rgba(0, 0, 0, 0.07);
+    border-color: rgba(0, 0, 0, 0.25);
+}
+
+body.light-theme .btn-secondary {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+body.light-theme .btn-secondary:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+body.light-theme .btn-card-action {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+body.light-theme .btn-card-action:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+body.light-theme .btn-share-tweet {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+body.light-theme .btn-share-tweet:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+body.light-theme .modal-container {
+    background: #ffffff;
+    border-color: var(--border-hover);
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+}
+
+body.light-theme .update-preview-box {
+    background: rgba(0, 0, 0, 0.015);
+}
+
+body.light-theme .compose-area textarea {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+body.light-theme .compose-area textarea:focus {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+body.light-theme .toast {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: var(--border-color);
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
 /* Base resets & typography */
 * {
     box-sizing: border-box;

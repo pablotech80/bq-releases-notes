@@ -10,6 +10,10 @@ let appState = {
 // DOM Elements
 const elements = {
     btnRefresh: document.getElementById('btn-refresh'),
+    btnThemeToggle: document.getElementById('btn-theme-toggle'),
+    iconSun: document.getElementById('icon-sun'),
+    iconMoon: document.getElementById('icon-moon'),
+    btnExportCSV: document.getElementById('btn-export-csv'),
     statusTimestamp: document.getElementById('status-timestamp'),
     feedLoader: document.getElementById('feed-loader'),
     feedEmpty: document.getElementById('feed-empty'),
@@ -42,6 +46,7 @@ const elements = {
 // Initialize Application
 document.addEventListener('DOMContentLoaded', () => {
     loadBookmarks();
+    loadTheme();
     setupEventListeners();
     fetchReleaseNotes(false);
 });
@@ -61,6 +66,36 @@ function loadBookmarks() {
 // Save Bookmarks to LocalStorage
 function saveBookmarks() {
     localStorage.setItem('bq_release_bookmarks', JSON.stringify(appState.bookmarks));
+}
+
+// Load Theme from LocalStorage
+function loadTheme() {
+    const savedTheme = localStorage.getItem('bq_release_theme') || 'dark';
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+        elements.iconSun.style.display = 'none';
+        elements.iconMoon.style.display = 'block';
+    } else {
+        document.body.classList.remove('light-theme');
+        elements.iconSun.style.display = 'block';
+        elements.iconMoon.style.display = 'none';
+    }
+}
+
+// Toggle light/dark theme
+function toggleTheme() {
+    const isLight = document.body.classList.toggle('light-theme');
+    localStorage.setItem('bq_release_theme', isLight ? 'light' : 'dark');
+    
+    if (isLight) {
+        elements.iconSun.style.display = 'none';
+        elements.iconMoon.style.display = 'block';
+        showToast('Light theme enabled', 'success');
+    } else {
+        elements.iconSun.style.display = 'block';
+        elements.iconMoon.style.display = 'none';
+        showToast('Dark theme enabled', 'success');
+    }
 }
 
 // Toast notification helper
@@ -101,6 +136,16 @@ function setupEventListeners() {
     // Refresh Button
     elements.btnRefresh.addEventListener('click', () => {
         fetchReleaseNotes(true);
+    });
+    
+    // Theme Toggle Button
+    elements.btnThemeToggle.addEventListener('click', () => {
+        toggleTheme();
+    });
+    
+    // Export CSV Button
+    elements.btnExportCSV.addEventListener('click', () => {
+        exportToCSV();
     });
     
     // Search Box Input
@@ -364,6 +409,25 @@ function renderTimeline() {
                 });
                 
                 actionsEl.appendChild(bookmarkBtn);
+                
+                // Actions (Copy to Clipboard)
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'btn-card-action';
+                copyBtn.title = 'Copy Update Text';
+                copyBtn.innerHTML = `
+                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                `;
+                copyBtn.addEventListener('click', () => {
+                    const copyText = `[BigQuery Update - ${up.type}] (${entry.date})\n\n${up.text}\n\nRead details at:\n${entry.link}`;
+                    navigator.clipboard.writeText(copyText)
+                        .then(() => showToast('Update copied to clipboard!', 'success'))
+                        .catch(() => showToast('Failed to copy to clipboard', 'info'));
+                });
+                actionsEl.appendChild(copyBtn);
+                
                 cardHeaderEl.appendChild(actionsEl);
                 cardEl.appendChild(cardHeaderEl);
                 
@@ -534,4 +598,62 @@ function postToTwitter() {
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
     window.open(twitterUrl, '_blank', 'noopener,noreferrer');
     hideModal();
+}
+
+// Export currently filtered releases to a CSV file
+function exportToCSV() {
+    let csvData = [];
+    
+    // Header row
+    csvData.push(['Fecha', 'Tipo', 'Enlace', 'Descripcion']);
+    
+    appState.entries.forEach(entry => {
+        entry.updates.forEach((up, index) => {
+            const updateId = generateUpdateId(entry.date, up.type, index);
+            
+            // Apply category filter
+            if (appState.activeFilter === 'bookmarks') {
+                if (!appState.bookmarks.includes(updateId)) return;
+            } else if (appState.activeFilter !== 'all') {
+                if (up.type.toLowerCase() !== appState.activeFilter.toLowerCase()) return;
+            }
+            
+            // Apply search query filter
+            if (appState.searchQuery) {
+                const textMatch = up.text.toLowerCase().includes(appState.searchQuery);
+                const typeMatch = up.type.toLowerCase().includes(appState.searchQuery);
+                const dateMatch = entry.date.toLowerCase().includes(appState.searchQuery);
+                if (!textMatch && !typeMatch && !dateMatch) return;
+            }
+            
+            // Prepare CSV fields and escape quotes
+            const cleanDesc = up.text.replace(/"/g, '""');
+            csvData.push([
+                `"${entry.date}"`,
+                `"${up.type}"`,
+                `"${entry.link}"`,
+                `"${cleanDesc}"`
+            ]);
+        });
+    });
+    
+    if (csvData.length <= 1) {
+        showToast('No visible updates to export', 'info');
+        return;
+    }
+    
+    // Construct CSV String
+    const csvContent = csvData.map(row => row.join(',')).join('\n');
+    
+    // Create download trigger (with UTF-8 BOM)
+    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'bigquery_releases_export.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showToast('CSV exported successfully!', 'success');
 }
